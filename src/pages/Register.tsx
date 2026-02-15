@@ -14,7 +14,7 @@ export function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -30,7 +30,7 @@ export function Register() {
 
     setLoading(true);
 
-    const result = authService.register({
+    const result = await authService.register({
       name: formData.name,
       email: formData.email,
       password: formData.password

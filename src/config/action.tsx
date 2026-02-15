@@ -13,7 +13,7 @@ const Register = async (payload:{
     email: string,
     password: string
  }) => {
-  const res = await api.post("/auth/login", payload);
+  const res = await api.post("/auth/register", payload);
   return res.data;
 };
 
@@ -22,9 +22,14 @@ const isMe = async () => {
   return res.data;
 };
 
-const getRecipes = async () => {
-  const res = await api.get("/recipes");
+const getRecipes = async (search:string) => {
+  const res = await api.get(`/recipes?search=${search}`);
   return res.data;
 };
 
-export { Login, Register, getRecipes, isMe };
+const getDetailRecipes = async (id:string) => {
+  const res = await api.get(`/recipes/${id}`);
+  return res.data;
+};
+
+export { Login, Register, getRecipes, isMe, getDetailRecipes };

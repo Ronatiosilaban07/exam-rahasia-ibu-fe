@@ -1,4 +1,5 @@
-import { Login, Register } from "../config/action";
+import { Login as LoginAPI, Register as RegisterAPI } from "../config/action";
+
 export interface User {
   id: string;
   name: string;
@@ -10,8 +11,8 @@ export interface AuthState {
   isAuthenticated: boolean;
 }
 
-const AUTH_KEY = 'rahasia_bunda_auth';
-const USERS_KEY = 'rahasia_bunda_users';
+export const AUTH_KEY = "rahasia_bunda_auth";
+export const TOKEN_KEY = "rahasia_bunda_token";
 
 export const authService = {
   getAuthState(): AuthState {
@@ -23,44 +24,92 @@ export const authService = {
     return { user: null, isAuthenticated: false };
   },
 
-  register(data: Omit<User, 'id'> & { password: string }): { success: boolean; message: string } {
-    const users = this.getAllUsers();
-    
-    if (users.find(u => u.email === data.email)) {
-      return { success: false, message: 'Email sudah terdaftar' };
+  async register(data: {
+    name: string;
+    email: string;
+    password: string;
+  }): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await RegisterAPI(data);
+
+      // asumsi response: { success: true, message: "..."}
+      if (res.user) {
+        return {
+          success: true,
+          message: res.message || "Registrasi berhasil",
+        };
+      }
+
+      return {
+        success: false,
+        message: res.message || "Registrasi gagal",
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error?.response?.data?.message || "Terjadi kesalahan",
+      };
     }
-
-    const newUser: User = {
-      id: Date.now().toString(),
-      name: data.name,
-      email: data.email,
-    };
-
-    users.push({ ...newUser, password: data.password });
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-
-    return { success: true, message: 'Registrasi berhasil' };
   },
 
-  login(email: string, password: string): { success: boolean; message: string; user?: User } {
-    const users = this.getAllUsers();
-    const user = users.find(u => u.email === email && u.password === password);
+  async login(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; message: string; user?: User }> {
+    try {
+      const res = await LoginAPI({ email, password });
 
-    if (user) {
-      const { password: _, ...userWithoutPassword } = user;
-      localStorage.setItem(AUTH_KEY, JSON.stringify(userWithoutPassword));
-      return { success: true, message: 'Login berhasil', user: userWithoutPassword };
+      /**
+       * asumsi response API:
+       * {
+       *   success: true,
+       *   message: "...",
+       *   data: {
+       *     user: {...},
+       *     token: "xxxxx"
+       *   }
+       * }
+       */
+
+      if (res.token) {
+          console.log('res', res);
+        
+        const user = res.user;
+        const token = res.token;
+
+        // simpan user
+        localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+
+        // simpan token
+        if (token) {
+          localStorage.setItem(TOKEN_KEY, token);
+        }
+
+        return {
+          success: true,
+          message: res.message || "Login berhasil",
+          user,
+        };
+      }
+
+      return {
+        success: false,
+        message: res.message || "Login gagal",
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error?.response?.data?.message || "Email atau password salah",
+      };
     }
-
-    return { success: false, message: 'Email atau password salah' };
   },
 
   logout(): void {
     localStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem(TOKEN_KEY);
   },
 
-  getAllUsers(): any[] {
-    const usersData = localStorage.getItem(USERS_KEY);
-    return usersData ? JSON.parse(usersData) : [];
-  }
+  getToken(): string | null {
+    return localStorage.getItem(TOKEN_KEY);
+  },
 };
