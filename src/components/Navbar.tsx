@@ -39,9 +39,6 @@ export function Navbar() {
   const toggleMobileMenu = () =>
     setMobileMenuOpen(!mobileMenuOpen);
 
-  const closeMobileMenu = () =>
-    setMobileMenuOpen(false);
-
   if (
     location.pathname === "/" ||
     location.pathname === "/login" ||
