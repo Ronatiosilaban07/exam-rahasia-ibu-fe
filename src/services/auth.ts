@@ -9,6 +9,7 @@ export interface User {
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+  token: string | null;
 }
 
 export const AUTH_KEY = "rahasia_bunda_auth";
@@ -16,12 +17,21 @@ export const TOKEN_KEY = "rahasia_bunda_token";
 
 export const authService = {
   getAuthState(): AuthState {
-    const authData = localStorage.getItem(AUTH_KEY);
-    if (authData) {
-      const user = JSON.parse(authData);
-      return { user, isAuthenticated: true };
+    const token = localStorage.getItem(TOKEN_KEY);
+    const user = localStorage.getItem(AUTH_KEY);
+
+    if (token && user) {
+      return {
+        user: JSON.parse(user),
+        token,
+        isAuthenticated: true,
+      };
     }
-    return { user: null, isAuthenticated: false };
+    return {
+      user: null,
+      token: null,
+      isAuthenticated: false,
+    };
   },
 
   async register(data: {
