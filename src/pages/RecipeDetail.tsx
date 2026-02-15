@@ -1,13 +1,8 @@
-import { useParams, Link, useNavigate } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 
 import {
   ArrowLeft,
-  Clock,
-  Users,
-  ChefHat,
-  Lightbulb,
-  Play,
 } from "lucide-react";
 
 import { ImageWithFallback } from "../helper/ImageWithdFallback";
